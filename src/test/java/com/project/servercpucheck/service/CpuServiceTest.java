@@ -10,20 +10,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.sun.management.OperatingSystemMXBean;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class CpuServiceTest {
 
     @Mock
     private CpuRepository cpuRepository;
+
+    @Mock
+    private OperatingSystemMXBean osBean;
+
+    @Mock
+    private ScheduledExecutorService scheduler;
 
     @InjectMocks
     private CpuService cpuService;
@@ -31,7 +37,23 @@ class CpuServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        double testCpuUsage = 50.0;
+        when(osBean.getSystemCpuLoad()).thenReturn(testCpuUsage / 100.0);
+
     }
+
+    @DisplayName("[Service] CPU 데이터 저장 테스트")
+    @Test
+    void testCpuCheck() throws Exception {
+        cpuService.cpuCheck();
+
+        verify(cpuRepository).save(argThat(cpu -> {
+            return cpu.getCpuUsage().equals("0.00");
+        }));
+    }
+
+
 
     @DisplayName("[Service] 분 단위 조회")
     @Test
