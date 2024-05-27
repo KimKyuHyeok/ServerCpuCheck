@@ -27,10 +27,16 @@ public class CpuApiController {
     ) throws Exception {
         validateDates(start, end);
         LocalDateTime now = LocalDateTime.now();
-        if (now.minusDays(7).isBefore(start)) {
+        if (!now.minusDays(7).isBefore(start)) {
             throw new Exception("최근 1주 데이터만 제공이 가능합니다.");
         }
-        return cpuservice.minuteCheck(start, end);
+
+        List<Cpu> result = cpuservice.minuteCheck(start, end);
+        if (result.size() == 0) {
+            throw new Exception("조회하신 기간 중 데이터가 존재하지 않습니다.");
+        }
+
+        return result;
     }
 
     @GetMapping("/hour")
@@ -40,10 +46,16 @@ public class CpuApiController {
     ) throws Exception {
         validateDates(start, end);
         LocalDateTime now = LocalDateTime.now();
-        if (now.minusMonths(3).isBefore(start)) {
+        if (!now.minusMonths(3).isBefore(start)) {
             throw new Exception("최근 3개월 데이터만 제공이 가능합니다.");
         }
-        return cpuservice.hourCheck(start, end);
+
+        List<CpuResponseDto> result = cpuservice.hourCheck(start, end);
+        if (result.size() == 0) {
+            throw new Exception("조회하신 기간 중 데이터가 존재하지 않습니다.");
+        }
+
+        return result;
     }
 
     @GetMapping("/month")
@@ -53,10 +65,14 @@ public class CpuApiController {
     ) throws Exception {
         validateDates(start, end);
         LocalDateTime now = LocalDateTime.now();
-        if (now.minusYears(1).isBefore(start)) {
+        if (!now.minusYears(1).isBefore(start)) {
             throw new Exception("최근 1년 데이터만 제공이 가능합니다.");
         }
-        return cpuservice.monthCheck(start, end);
+        List<CpuResponseDto> result = cpuservice.monthCheck(start, end);
+        if (result.size() == 0) {
+            throw new Exception("조회하신 기간 중 데이터가 존재하지 않습니다.");
+        }
+        return result;
     }
 
     private void validateDates(LocalDateTime start, LocalDateTime end) {

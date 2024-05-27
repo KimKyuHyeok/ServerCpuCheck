@@ -58,6 +58,8 @@ public class CpuService {
 
     public List<Cpu> minuteCheck(LocalDateTime start, LocalDateTime end) {
 
+        List<Cpu> test = cpuRepository.findByCreatedAtBetween(start, end);
+
         return cpuRepository.findByCreatedAtBetween(start, end);
     }
 
@@ -71,16 +73,17 @@ public class CpuService {
         while (!date.isAfter(end)) {
             List<Cpu> cpuList = minuteCheck(date, date.plusHours(1));
 
-            CpuResponseDto dto = CpuResponseDto.builder()
-                    .start(date)
-                    .end(date.plusHours(1))
-                    .avg(usageAverage(cpuList))
-                    .max(usageMax(cpuList))
-                    .min(usageMin(cpuList))
-                    .build();
+            if (cpuList.size() != 0) {
+                CpuResponseDto dto = CpuResponseDto.builder()
+                        .start(date)
+                        .end(date.plusHours(1))
+                        .avg(usageAverage(cpuList))
+                        .max(usageMax(cpuList))
+                        .min(usageMin(cpuList))
+                        .build();
 
-            list.add(dto);
-
+                list.add(dto);
+            }
             date = date.plusHours(1);
         }
 
@@ -95,16 +98,17 @@ public class CpuService {
         while (!date.isAfter(end)) {
             List<Cpu> cpuList = minuteCheck(date, date.plusMonths(1));
 
-            CpuResponseDto dto = CpuResponseDto.builder()
-                    .start(date)
-                    .end(date.plusMonths(1))
-                    .avg(usageAverage(cpuList))
-                    .max(usageMax(cpuList))
-                    .min(usageMin(cpuList))
-                    .build();
+            if (cpuList.size() != 0) {
+                CpuResponseDto dto = CpuResponseDto.builder()
+                        .start(date)
+                        .end(date.plusMonths(1))
+                        .avg(usageAverage(cpuList))
+                        .max(usageMax(cpuList))
+                        .min(usageMin(cpuList))
+                        .build();
 
-            list.add(dto);
-
+                list.add(dto);
+            }
             date = date.plusMonths(1);
         }
 
