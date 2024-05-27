@@ -3,14 +3,18 @@ package com.project.servercpucheck.service;
 import com.project.servercpucheck.dto.CpuResponseDto;
 import com.project.servercpucheck.entity.Cpu;
 import com.project.servercpucheck.repository.CpuRepository;
+import com.sun.management.OperatingSystemMXBean;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Service
@@ -20,32 +24,37 @@ public class CpuService {
     private final CpuRepository cpuRepository;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-//    @PostConstruct
-//    public void init() {
-//        cpuCheck();
-//    }
-//
-//    public void cpuCheck() {
-//        OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-//
-//        Runnable cpuCheckTask = new Runnable() {
-//            @Override
-//            public void run() {
-//                double systemCpuLoad = osBean.getSystemCpuLoad() * 100;
-//
-//                String cpuUsage = String.format("%.2f", systemCpuLoad);
-//                System.out.println("[ TEST ] : " + cpuUsage);
-//
-//                Cpu cpu = new Cpu();
-//                cpu.setUsage(cpuUsage);
-//
-//                cpuRepository.save(cpu);
-//
-//            }
-//        };
-//
-//        scheduler.scheduleAtFixedRate(cpuCheckTask, 0, 1, TimeUnit.MINUTES);
-//    }
+    @PostConstruct
+    public void init() throws Exception {
+        cpuCheck();
+    }
+
+    public void cpuCheck() throws Exception {
+        try {
+            OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+
+            Runnable cpuCheckTask = new Runnable() {
+                @Override
+                public void run() {
+                    double systemCpuLoad = osBean.getSystemCpuLoad() * 100;
+
+                    String cpuUsage = String.format("%.2f", systemCpuLoad);
+                    System.out.println("[ TEST ] : " + cpuUsage);
+
+                    Cpu cpu = new Cpu();
+                    cpu.setCpuUsage(cpuUsage);
+
+                    cpuRepository.save(cpu);
+
+                }
+            };
+
+            scheduler.scheduleAtFixedRate(cpuCheckTask, 0, 1, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            throw new Exception("CPU 데이터를 수집하는 도중 에러가 발생하였습니다.");
+        }
+
+    }
 
     public List<Cpu> minuteCheck(LocalDateTime start, LocalDateTime end) {
 
