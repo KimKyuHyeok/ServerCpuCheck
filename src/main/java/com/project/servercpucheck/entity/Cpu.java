@@ -3,6 +3,7 @@ package com.project.servercpucheck.entity;
 import com.project.servercpucheck.dto.CpuResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
@@ -27,10 +28,4 @@ public class Cpu {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-ddTHH:mm");
-        this.createdAt = LocalDateTime.parse(this.createdAt.format(formatter), formatter);
-    }
 }

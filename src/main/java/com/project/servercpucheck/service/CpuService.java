@@ -5,8 +5,12 @@ import com.project.servercpucheck.entity.Cpu;
 import com.project.servercpucheck.repository.CpuRepository;
 import com.sun.management.OperatingSystemMXBean;
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
@@ -20,15 +24,20 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CpuService {
 
-
     private final CpuRepository cpuRepository;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @PostConstruct
-    public void init() throws Exception {
-        cpuCheck();
+    public void init() {
+        try {
+            cpuCheck();
+        } catch (Exception e) {
+            System.err.println("에러 발생 : " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
+    @Transactional
     public void cpuCheck() throws Exception {
         try {
             OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
@@ -39,13 +48,18 @@ public class CpuService {
                     double systemCpuLoad = osBean.getSystemCpuLoad() * 100;
 
                     String cpuUsage = String.format("%.2f", systemCpuLoad);
-                    System.out.println("[ TEST ] : " + cpuUsage);
 
                     Cpu cpu = new Cpu();
                     cpu.setCpuUsage(cpuUsage);
+                    cpu.setCreatedAt(LocalDateTime.now());
 
-                    cpuRepository.save(cpu);
-
+                    try {
+                        cpuRepository.save(cpu);
+                        System.out.println("[CPU] 사용량 : " + cpuUsage);
+                    } catch (Exception e) {
+                        System.err.println("CPU 저장 도중 에러가 발생하였습니다 : " + e.getMessage());
+                        e.printStackTrace();
+                    }
                 }
             };
 
